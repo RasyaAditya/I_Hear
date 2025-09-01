@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"i-hear-auth","appId":"1:719208844888:android:79cab63d8116888db0442d","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"i-hear-auth","configurations":{"android":"1:719208844888:android:79cab63d8116888db0442d","ios":"1:719208844888:ios:0b86b607285751fab0442d"}}}}}}

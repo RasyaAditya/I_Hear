@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "719208844888",
+    "firebase_url": "https://i-hear-auth-default-rtdb.firebaseio.com",
+    "project_id": "i-hear-auth",
+    "storage_bucket": "i-hear-auth.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:719208844888:android:79cab63d8116888db0442d",
+        "android_client_info": {
+          "package_name": "com.example.i_hear"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgYt1bpYyhRwC2BnLz4lL0zvZM9MHD_9I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

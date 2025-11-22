@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:i_hear/Pages/Detail/DetailPosisi.dart';
 import 'package:i_hear/Pages/Home/CekPosisi.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter/services.dart'; // untuk bunyi klik
@@ -154,6 +155,33 @@ class _QRScannerPageState extends State<QRScannerPage>
                         ),
                         child: Icon(
                           Icons.camera_alt,
+                          color: Colors.black87,
+                          size: size.width * 0.08,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: size.height * 0.05,
+                      left: size.width * 0.05,
+                    ),
+                    child: GestureDetector(
+                      onTap: () {
+                        // Bunyi klik bawaan sistem
+                        SystemSound.play(SystemSoundType.click);
+
+                        // Navigasi
+                        Get.to(const DetailPosisiPage());
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(size.width * 0.04),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                        ),
+                        child: Icon(
+                          Icons.map_sharp,
                           color: Colors.black87,
                           size: size.width * 0.08,
                         ),

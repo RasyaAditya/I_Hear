@@ -1,22 +1,24 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/state_manager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:i_hear/Pages/Home/ChatBot.dart';
+import 'package:i_hear/Pages/Detail/DetailTempat.dart';
 import 'package:i_hear/Pages/Home/IsyaratPintar.dart';
+import 'package:i_hear/Pages/Home/Notifikasi.dart';
 import 'package:i_hear/Pages/Home/OnBoardingAi.dart';
 import 'package:i_hear/Pages/Home/SuaraTulis.dart';
 import 'package:i_hear/Pages/Home/TerjemahKata.dart';
 import '../Pages/Home/LensaIsyarat.dart';
 import '../Pages/Detail/DetailBerita.dart';
-
 import 'package:i_hear/Widgets/WidgetProfil.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:get_storage/get_storage.dart';
+
+// Import halaman artikel untuk navigasi
+import 'WidgetArtikel.dart';
 
 class WidgetHome extends StatefulWidget {
   final VoidCallback? onProfileTap;
@@ -55,7 +57,7 @@ Definisi dalam KBBI
 Menurut Kamus Besar Bahasa Indonesia (KBBI), tunarungu berarti rusak pendengaran, sedangkan tuli berarti tidak dapat mendengar.
 
 Perspektif Medis vs. Budaya
-Istilah tunarungu sering digunakan dalam konteks medis untuk merujuk pada individu yang mengalami gangguan pendengaran dan dianggap sebagai kondisi yang memerlukan intervensi atau perbaikan. 
+Istilah tunarungu sering digunakan dalam konteks medis untuk merujuk pada individu yang mengalami gangguan pendengaran dan dianggap sebagai kondisi yang memerlukan intervensi atau perbaikan. 
 Di sisi lain, Tuli dengan huruf kapital T digunakan oleh komunitas sebagai identitas budaya yang menekankan bahasa isyarat sebagai bahasa ibu dan menolak pandangan bahwa mereka memiliki kekurangan yang perlu diperbaiki.
 
 Preferensi Komunitas
@@ -145,7 +147,7 @@ Pelatih yang melatih Zaka memiliki kesabaran dan ketelatenan tinggi. Zaka tidak 
 Bahasa isyarat membantu dalam memberikan pendidikan anak dengan tuna rungu wicara atau gangguan pendengaran dan berbicara di Sekolah Luar Biasa (SLB).
 Siti Afifah, guru SLB B Dharma Wanita Pare, Kabupaten Kediri, menyampaikan bahwa karena SLB berada di daerah, siswa diajarkan bahasa oral (gerak bibir) dan bahasa isyarat.
 
- “Bahasa isyarat untuk anak-anak terutama di SLB memang membantu sekali, tapi kita tetap mengusahakan anak-anak bisa komunikasi total. Diusahakan anak-anak bisa pakai bahasa gerak bibir dan bahasa isyarat karena rata-rata anak-anak dari daerah, keluarga di rumah kurang menguasai bahasa isyarat,” ujar Siti Afifah.
+ “Bahasa isyarat untuk anak-anak terutama di SLB memang membantu sekali, tapi kita tetap mengusahakan anak-anak bisa komunikasi total. Diusahakan anak-anak bisa pakai bahasa gerak bibir dan bahasa isyarat karena rata-rata anak-anak dari daerah, keluarga di rumah kurang menguasai bahasa isyarat,” ujar Siti Afifah.
 
 Hari Bahasa Isyarat Internasional diperingati setiap tanggal 23 September untuk meningkatkan kesadaran pentingnya bahasa isyarat bagi jutaan orang tuli dan tunarungu serta mendorong hak mereka untuk mengakses komunikasi yang setara.
 
@@ -158,132 +160,55 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
     },
   ];
 
-  final List<Map<String, String>> berita2 = [
+  final List<Map<String, String>> tempat = [
     {
-      "judul":
-          "Pemkab Jember Siap Tingkatkan Aksesibilitas Layanan Publik untuk Disabilitas Tuna Rungu dan Wicara?",
-      "logo berita": "assets/Icon/logoLiputan6.png",
-      "nama berita": "Liputan6.com",
-      "waktu": "2 Jam yang lalu",
-      "gambar": "assets/images/B4.png",
+      "judul": "Sunyi Coffee - Taman Ayodia Barito",
+      "instagram":
+          "https://www.instagram.com/sunyicoffee?igsh=MXRodzc5NGxjNmp0NQ==",
+      "maps": "https://maps.app.goo.gl/di4GaeVPdP8U4MmN9",
+      "nama tempat": "Toko Kopi",
+      "gambar": "assets/images/tmpt1.png",
       "deskripsi":
-          "Pemerintah Kabupaten Jember berkomitmen memperbaiki layanan publik agar lebih ramah bagi penyandang tunarungu dan tunawicara",
-      "isi berita": """
-Perwakilan komunitas penyandang disabilitas rungu dan wicara yang tergabung dalam Gerakan untuk Kesejahteraan Tuna Rungu Indonesia (Gergatin) menyampaikan aspirasi mereka terkait keterbatasan akses terhadap layanan publik di Jember. Mereka berharap Pemerintah Kabupaten Jember memberikan perhatian agar pelayanan publik bisa diakses secara setara.
-
-Perwakilan komunitas penyandang disabilitas rungu dan wicara yang tergabung dalam Gerakan untuk Kesejahteraan Tuna Rungu Indonesia (Gergatin) menyampaikan aspirasi mereka terkait keterbatasan akses terhadap layanan publik di Jember. Mereka berharap Pemerintah Kabupaten Jember memberikan perhatian agar pelayanan publik bisa diakses secara setara.
-
-“Prinsip kami jelas, tidak boleh ada diskriminasi. Saudara-saudara kita penyandang disabilitas juga berhak mendapatkan pelayanan kesehatan yang optimal,” ujar Bupati Fawait.
-Ia menambahkan bahwa aspirasi ini akan diteruskan ke seluruh fasilitas kesehatan di bawah kewenangan pemerintah daerah, termasuk 3 rumah sakit daerah dan 50 puskesmas di Jember. Tenaga kesehatan akan dibekali pengetahuan dan pelatihan untuk menghadirkan pelayanan yang inklusif.
-
-Bupati Fawait menekankan seluruh fasilitas kesehatan harus ramah terhadap penyandang disabilitas. Aksesibilitas menjadi kunci agar semua masyarakat memperoleh layanan kesehatan secara adil.
-
-Ia juga mengajak masyarakat menyampaikan keluhan dan saran melalui kanal Wadul Gus'e, terutama terkait kebutuhan layanan publik bagi kelompok difabel. Penyediaan juru bahasa isyarat (JBI) di fasilitas kesehatan diharapkan membantu penyandang disabilitas rungu dan wicara mengakses layanan secara mandiri dan nyaman.
-
-""",
+          "Sunyi Coffee, dipimpin oleh CEO Mario, memiliki visi yang kuat untuk memberdayakan penyandang disabilitas di Indonesia. Dalam wawancaranya baru-baru ini, Mario membahas konsep unik Sunyi Coffee yang bertujuan untuk menyetarakan penyandang disabilitas dan mengubah stigma terhadap mereka.\n\nKonsep bisnis sosial Sunyi Coffee bukan sekedar mencari keuntungan namun lebih pada pemberian kesempatan, edukasi, dan mengubah persepsi masyarakat terhadap disabilitas. Sunyi Coffee menunjukkan bahwa ukuran kesuksesan bisnis sebenarnya bukan hanya keuntungan, namun juga dampak sosialnya.",
     },
     {
-      "judul": "Bekali Disabilitas Rungu Wicara agar Bangun Kemandirian Sosial",
-      "logo berita": "assets/Icon/logoSB.png",
-      "nama berita": "Sekitar Bandung.com",
-      "waktu": "2 Jam yang lalu",
-      "gambar": "assets/images/B5.png",
+      "judul": "Kopi Kamu Wijaya Jakarta Selatan",
+      "instagram":
+          "https://www.instagram.com/kopikamu_official?igsh=MXh6NjR5YW85YThidA==",
+      "maps": "https://maps.app.goo.gl/7m4ybrYXCFwcins78",
+      "nama tempat": "Toko Kopi",
+      "gambar": "assets/images/tmpt2.png",
       "deskripsi":
-          "Program pelatihan diberikan untuk mendukung kemandirian sosial dan ekonomi penyandang disabilitas rungu-wicara di Jawa Timur.",
-      "isi berita": """
-Dinas Sosial Provinsi Jawa Timur memiliki UPT Rehabilitasi Sosial Bina Rungu Wicara (RSBRW) Pasuruan, yang memberikan pembekalan keterampilan bagi penerima manfaat berusia 15-35 tahun untuk meraih kemandirian sosial.
-
-Tersedia empat keterampilan utama: bordir, jahit putri, jahit putra, dan las, dilaksanakan Senin–Kamis. Pada hari Jumat, penerima manfaat juga mendapatkan keterampilan tambahan: tata boga, handycraft, dan desain grafis. Selain itu, ada kegiatan mengaji dengan metode oral dan bahasa isyarat, bekerjasama dengan Gerkatin (Gerakan untuk Kesejahteraan Tuna Rungu Indonesia).
-
-Beberapa penerima manfaat merasa senang dan berkembang dalam keterampilan yang dipelajari, seperti Hilma (bordir), Alvia (jahit putri), dan Kiki (jahit putra). Mereka berharap setelah lulus, bisa membuka usaha sendiri atau bekerja di bidang keterampilan yang dimiliki, sehingga memiliki kemandirian sosial.
-
-Kepala UPT RSBRW Pasuruan, Sri Mariyani, menambahkan bahwa penerima manfaat direkrut melalui Dinas Sosial kabupaten/kota masing-masing, dan lama pelatihan adalah dua tahun, dengan kemungkinan perpanjangan satu tahun jika masih membutuhkan. Saat ini terdapat 60 penerima manfaat, dengan 24 orang yang akan segera lulus.
-
-Selain pelatihan, orang tua juga dibekali motivasi agar bisa mendampingi anak-anak mereka. UPT RSBRW Pasuruan telah bekerjasama dengan tiga perusahaan untuk magang serta UPT BLK Pasuruan Disnakertrans Jatim, guna menyiapkan keterampilan lebih matang. Produk hasil pelatihan juga akan dipamerkan melalui showroom dan kegiatan pameran Dinsos Jatim.
-""",
+          "Kafe di Jakarta Selatan ini punya program unik. Tidak hanya menyajikan minuman segar dan makanan enak, tetapi penyandang down syndrome juga dikaryakan di sini.Ketika datang ke kafe, banyak pelanggan yang berharap dilayani dengan cepat dan maksimal. Tetapi jika kamu memilih untuk datang ke kafe yang satu ini, harus menyiapkan kesabaran yang berbeda dari biasanya.\n\nKopi Kamu, yang salah satunya berada di Jakarta Selatan, memiliki konsep yang unik. Layaknya kafe yang memperkerjakan penyandang disabilitas lainnya. Bedanya di sini para penyandang down syndrome diajak berkarya bersama.",
     },
     {
-      "judul":
-          "Korban Kecelakaan Menjadi Penyumbang Besar Disabilitas di Indonesia",
-      "logo berita": "assets/Icon/logoTempo.png",
-      "nama berita": "Tempo.com",
-      "waktu": "2 Jam yang lalu",
-      "gambar": "assets/images/B6.png",
+      "judul": "Difabis Coffee And Tea",
+      "instagram":
+          "https://www.instagram.com/difabis?igsh=MW1uN3ZoZzdqbHZpcw==",
+      "maps": "https://maps.app.goo.gl/1oCjLiLGezdVrmH29",
+      "nama tempat": "Toko Kopi",
+      "gambar": "assets/images/tmpt3.png",
       "deskripsi":
-          "Korban kecelakaan masih menjadi penyumbang terbesar jumlah penyandang disabilitas di Indonesia.",
-      "isi berita": """
-Ketua Umum Perkumpulan Penyandang Disabilitas Indonesia (PPDI), Norman Yulian, menyampaikan bahwa korban kecelakaan, termasuk kecelakaan lalu lintas, menjadi salah satu penyumbang terbesar angka disabilitas di Indonesia. Saat ini, jumlah penyandang disabilitas di Indonesia mencapai lebih dari 10 juta orang.
-
-Norman menekankan bahwa beban psikologis korban kecelakaan lebih berat dibanding penyandang disabilitas sejak lahir, karena mereka harus menyesuaikan diri dengan kondisi baru yang berbeda dari kehidupan sebelumnya.
-
-Dalam kesempatan tersebut, para penyandang disabilitas korban kecelakaan menerima alat bantu dari Korps Lalu Lintas (Korlantas) Polri, yang bertujuan membantu mereka lebih mandiri dan meningkatkan kepercayaan diri saat kembali bermasyarakat.
-Norman mendorong agar dukungan tidak berhenti pada alat bantu saja, tetapi juga disertai program lanjutan berupa pembinaan keterampilan dan pemberdayaan ekonomi, sehingga korban kecelakaan dapat memperoleh penghasilan tambahan dan kembali produktif.
-
-""",
+          "DIFABIS atau “Difabel Bisa” merupakan program pemberdayaan yang dilakukan oleh BAZNAS (BAZIS) Provinsi DKI Jakarta sebagai wadah inklusi bagi difabel untuk menciptakan kemandirian, kesejahteraan, dan mengembangkan diri dalam kesempatan dunia kerja.",
     },
     {
-      "judul": "DPR Desak Pemerintah Perkuat Layanan Disabilitas",
-      "logo berita": "assets/Icon/logoSB.png",
-      "nama berita": "Sekitar Bandung.com",
-      "waktu": "2 Jam yang lalu",
-      "gambar": "assets/images/B7.png",
+      "judul": "DignityKu",
+      "instagram": "https://www.instagram.com/dignityku?igsh=dDhmZWk0cDQwYWp1",
+      "maps": "https://maps.app.goo.gl/sJVVLArGPXNPNfWP9",
+      "nama tempat": "Restoran",
+      "gambar": "assets/images/tmpt4.png",
       "deskripsi":
-          "Pemerintah diminta memperkuat akses layanan pendidikan agar semua anak disabilitas dapat bersekolah tanpa diskriminasi.",
-      "isi berita": """
-Komisi X DPR RI mendesak pemerintah untuk memperkuat fungsi Unit Layanan Disabilitas (ULD) agar anak-anak penyandang disabilitas di Indonesia dapat mengakses pendidikan secara setara.
-Ketua Komisi X DPR RI, Hetifah Sjaifudian, menegaskan bahwa pendidikan merupakan hak dasar seluruh warga negara, termasuk penyandang disabilitas.
-"Pendidikan adalah hak dasar setiap warga negara, tanpa terkecuali bagi saudara-saudara kita penyandang disabilitas. Negara wajib menjamin akses pendidikan yang setara, bermutu, dan tanpa diskriminasi," ujar Hetifah dalam kegiatan Advokasi Optimalisasi Fungsi ULD Bidang Pendidikan yang digelar di Jakarta, Kamis (21/8/2025).
-
-Selain itu, meskipun terdapat ribuan sekolah inklusif di Indonesia, baru sekitar 14,83 persen yang memiliki Guru Pembimbing Khusus (GPK) sebagai tenaga pendukung utama bagi siswa penyandang disabilitas.
-"Keberadaan ULD sangat strategis sebagai jembatan yang memastikan peserta didik penyandang disabilitas memperoleh layanan pendidikan setara," jelas Hetifah.
-
-Ia menegaskan, optimalisasi ULD tidak boleh sebatas formalitas. ULD harus benar-benar responsif, memiliki SDM terlatih, sarana prasarana yang ramah disabilitas, serta dukungan regulasi yang kuat.
-"Unit ini harus berkelanjutan dan mampu menghapus hambatan yang dihadapi peserta didik disabilitas. Dengan begitu, ULD dapat menjadi motor penggerak inklusi, kesetaraan, dan keadilan dalam pendidikan," tambahnya.
-
-Komisi X DPR RI berkomitmen mendorong pemerintah memperkuat peran ULD di seluruh daerah. Hetifah juga mengajak lembaga pendidikan dan masyarakat turut serta membangun ekosistem pendidikan inklusif.
-"Semoga ikhtiar ini menjadi langkah nyata dalam menghadirkan layanan pendidikan yang lebih adil, inklusif, dan berkualitas bagi seluruh anak bangsa," pungkasnya.
-
-""",
+          "DignityKu adalah restoran pertama di Indonesia yang semua pelayannya adalah penyandang disabilitas dan dilengkapi dengan kelas pelatihan. Restoran ini berada di Jalan Sepat No. 22, Jakarta Selatan.\n\nMenurut pendiri DignityKu, Hendra Warsita, socio enterprise ini menyediakan pelatihan barista dan memasak secara profesional bagi para penyandang disabilitas. Instruktur atau guru masaknya sendiri merupakan chef atau juru masak berpengalaman yang sudah bekerja di dunia food and beverage (F&B) selama 10 tahun.",
     },
     {
-      "judul": "Komitmen Pemenuhan Hak Disabilitas dalam RKP 2025",
-      "logo berita": "assets/Icon/logoTempo.png",
-      "nama berita": "Tempo.com",
-      "waktu": "2 Jam yang lalu",
-      "gambar": "assets/images/B8.png",
-      "deskripsi": "Komitmen Pemenuhan Hak Disabilitas dalam RKP 2025",
-      "isi berita": """
-Deputi Bidang Koordinasi Peningkatan Kualitas Keluarga dan Kependudukan Kementerian Koordinator Bidang Pembangunan Manusia dan Kebudayaan (Kemenko PMK) Woro Srihastuti Sulistyaningrum menegaskan, isu penyandang disabilitas adalah isu lintas sektor yang memerlukan perhatian komprehensif.
-
-Hal tersebut disampaikannya dalam Rapat Koordinasi Monitoring dan Sinkronisasi Capaian Program RKP 2025 dan RENJA K/L Bidang Penyandang Disabilitas yang diselenggarakan secara daring, pada Kamis (13/3/2025).
-
-"Pemerintah Indonesia terus berupaya memperkuat pemenuhan hak penyandang disabilitas melalui serangkaian kebijakan inklusif yang melibatkan berbagai sektor," ujar Deputi yang akrab disapa Lisa itu.
-
-Deputi Lisa memaparkan, berdasarkan data REGSOSEK 2023, terdapat 4,3 juta penyandang disabilitas sedang hingga berat di Indonesia, dengan mayoritas berada pada kelompok usia dewasa dan lanjut usia. Ia menyampaikan, penyandang disabilitas dan keluarganya masih menghadapi keterbatasan akses terhadap layanan dasar, seperti pendidikan, kesehatan, dan ketenagakerjaan.
-
-Salah satu tantangan utama dalam sektor pendidikan adalah rendahnya tingkat partisipasi penyandang disabilitas. Data Susenas Maret 2024 menunjukkan bahwa 17,2% penyandang disabilitas berusia 15 tahun ke atas tidak pernah bersekolah, dan hanya 4,24% yang berhasil mencapai pendidikan tinggi. 
-
-Dari sisi kesehatan, Deputi Lisa mengungkapkan bahwa penyandang disabilitas cenderung memiliki akses yang lebih rendah terhadap jaminan kesehatan, baik dari pemerintah maupun swasta. Oleh karena itu, pemerintah akan terus mendorong penguatan layanan kesehatan yang ramah disabilitas.
-
-Deputi Lisa menyampaikan, pemerintah telah menetapkan berbagai instrumen hukum untuk memastikan hak penyandang disabilitas terlindungi. Beberapa di antaranya adalah UU Nomor 8 Tahun 2016 tentang Penyandang Disabilitas, PP Nomor 70 Tahun 2019 tentang Perencanaan, Penyelenggaraan, dan Evaluasi terhadap Penghormatan, Pelindungan, dan Pemenuhan Hak Penyandang Disabilitas. Selain itu, terdapat Perpres Nomor 12 Tahun 2025 tentang RPJMN 2025-2029 juga menegaskan pentingnya koordinasi lintas kementerian dalam memastikan keberpihakan terhadap penyandang disabilitas.
-
-Sebagai bagian dari Rencana Pembangunan Jangka Menengah Nasional (RPJMN) 2025-2029, Kemenko PMK diamanatkan untuk mendukung pencapaian sasaran pembangunan Prioritas Nasional IV, dengan fokus pada peningkatan mobilitas penyandang disabilitas. Targetnya adalah meningkatkan mobilitas dari 68,42% pada 2023 menjadi 69% pada 2025, dan mencapai 71% pada 2029.
-
-Deputi Lisa juga menyoroti pentingnya sinergi antara pemerintah pusat dan daerah dalam menerapkan kebijakan inklusif. Pendekatan ini mencakup penyelarasan anggaran, integrasi program, serta peningkatan partisipasi penyandang disabilitas dalam proses perencanaan pembangunan.
-
-"Kita perlu mendorong kemitraan dengan pemerintah daerah untuk memastikan kebijakan yang diterapkan sesuai dengan konteks lokal dan kebutuhan nyata penyandang disabilitas," tuturnya. 
-
-Dalam Rencana Kerja Pemerintah (RKP) Tahun 2025, program peningkatan kesetaraan dan pemenuhan hak penyandang disabilitas akan difokuskan pada berbagai aspek, termasuk peningkatan akses terhadap pekerjaan, penguatan kapasitas penyandang disabilitas melalui pelatihan keterampilan, serta penyediaan infrastruktur yang ramah disabilitas. 
-
-"Kolaborasi antar-kementerian harus terus diperkuat untuk memastikan bahwa alokasi dana dan program-program yang ada dapat saling melengkapi," kata Deputi Lisa.
-
-Sebagai langkah konkret, pemerintah juga tengah menyusun Indeks Inklusivitas Penyandang Disabilitas sebagai alat ukur dalam mengevaluasi efektivitas kebijakan yang telah diterapkan. Indeks ini akan memastikan bahwa setiap kebijakan didasarkan pada data yang valid dan dapat dipertanggungjawabkan, sehingga intervensi yang dilakukan lebih tepat sasaran.
-
-Deputi Lisa menutup paparannya dengan menegaskan bahwa inklusi penyandang disabilitas harus menjadi bagian integral dari pembangunan nasional. "Kita tidak bisa membangun bangsa ini dengan meninggalkan kelompok rentan. Oleh karena itu, kebijakan yang inklusif dan berkelanjutan harus terus diupayakan untuk mewujudkan kesejahteraan bagi seluruh warga negara," pungkasnya.
-
-Rapat ini dihadiri oleh 14 K/L, antara lain Sesditjen Kemendiktisaintek, Direktur Pendidikan Khusus dan Pendidikan Layanan Khusus Kemendikdasmen, Kasub Direktorat Sosial dan Budaya Kemendagri, perwakilan dari Bappenas, Kemenkes, Kemensos, BKKBN, Kemenpora, KPPPA, Kemnaker, Kemendikdasmen, Kemenhub, Kemen PU, Kemenag, dan Komisi Nasional Disabilitas.
-
-""",
+      "judul": "Difabis Coffee and Book",
+      "instagram":
+          "https://www.instagram.com/difabiscoffee?igsh=MTVwODR1MDc0dDQ5Zw==",
+      "maps": "https://maps.app.goo.gl/Zr8SVN6HiJM61oCYA",
+      "nama tempat": "Toko Kopi",
+      "gambar": "assets/images/tmpt5.png",
+      "deskripsi":
+          "Kedai yang berada area Utara Pintu Barat Lobby Kantor Wali Kota Jakut ini, cocok untuk bersantai sejenak sambil menyeruput kopi atau teh dan menikmati cemilan ringan.\n\nSekilas, sajian dan suasana kedai ini memang tak jauh beda dengan kedai kopi kekinian lain. Yang membedakannya, juru saji dan barista di kedai ini adalah penyandang difabel.\n\nHaniyah, person in charge (PIC) atau penanggungjawab kedai Coffe dan Book Difabis mengatakan, empat barista di kedai ini merupakan tuna rungu dan tuna daksa yang sudah terlatih meracik kopi.",
     },
   ];
 
@@ -301,7 +226,7 @@ Definisi dalam KBBI
 Menurut Kamus Besar Bahasa Indonesia (KBBI), tunarungu berarti rusak pendengaran, sedangkan tuli berarti tidak dapat mendengar.
 
 Perspektif Medis vs. Budaya
-Istilah tunarungu sering digunakan dalam konteks medis untuk merujuk pada individu yang mengalami gangguan pendengaran dan dianggap sebagai kondisi yang memerlukan intervensi atau perbaikan. 
+Istilah tunarungu sering digunakan dalam konteks medis untuk merujuk pada individu yang mengalami gangguan pendengaran dan dianggap sebagai kondisi yang memerlukan intervensi atau perbaikan. 
 Di sisi lain, Tuli dengan huruf kapital T digunakan oleh komunitas sebagai identitas budaya yang menekankan bahasa isyarat sebagai bahasa ibu dan menolak pandangan bahwa mereka memiliki kekurangan yang perlu diperbaiki.
 
 Preferensi Komunitas
@@ -391,7 +316,7 @@ Pelatih yang melatih Zaka memiliki kesabaran dan ketelatenan tinggi. Zaka tidak 
 Bahasa isyarat membantu dalam memberikan pendidikan anak dengan tuna rungu wicara atau gangguan pendengaran dan berbicara di Sekolah Luar Biasa (SLB).
 Siti Afifah, guru SLB B Dharma Wanita Pare, Kabupaten Kediri, menyampaikan bahwa karena SLB berada di daerah, siswa diajarkan bahasa oral (gerak bibir) dan bahasa isyarat.
 
- “Bahasa isyarat untuk anak-anak terutama di SLB memang membantu sekali, tapi kita tetap mengusahakan anak-anak bisa komunikasi total. Diusahakan anak-anak bisa pakai bahasa gerak bibir dan bahasa isyarat karena rata-rata anak-anak dari daerah, keluarga di rumah kurang menguasai bahasa isyarat,” ujar Siti Afifah.
+ “Bahasa isyarat untuk anak-anak terutama di SLB memang membantu sekali, tapi kita tetap mengusahakan anak-anak bisa komunikasi total. Diusahakan anak-anak bisa pakai bahasa gerak bibir dan bahasa isyarat karena rata-rata anak-anak dari daerah, keluarga di rumah kurang menguasai bahasa isyarat,” ujar Siti Afifah.
 
 Hari Bahasa Isyarat Internasional diperingati setiap tanggal 23 September untuk meningkatkan kesadaran pentingnya bahasa isyarat bagi jutaan orang tuli dan tunarungu serta mendorong hak mereka untuk mengakses komunikasi yang setara.
 
@@ -433,7 +358,9 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
 
   final User? user = FirebaseAuth.instance.currentUser;
   String? displayName;
-  File? profileImage;
+  String? imageUrl;
+  String? phoneNumber;
+  final box = GetStorage();
 
   @override
   void initState() {
@@ -441,23 +368,38 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
     _loadProfileData();
   }
 
-  void _loadProfileData() {
-    final box = GetStorage();
-    final email = user?.email ?? "";
-    final data = box.read("Data_$email");
+  void _loadProfileData() async {
+    final uid = user?.uid;
+    if (uid == null) return;
 
-    if (data != null) {
-      setState(() {
-        displayName = data["DisplayName"] ?? "Pengguna";
-        if (data["Image"] != null) {
-          profileImage = File(data["Image"]);
-        }
-      });
-    } else {
-      setState(() {
-        displayName = user?.email ?? "Pengguna";
-        profileImage = null;
-      });
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .get();
+
+      if (snapshot.exists) {
+        final data = snapshot.data()!;
+        setState(() {
+          displayName = data["username"] ?? "Pengguna"; // ambil dari Firestore
+          phoneNumber = data["phone"] ?? "-";
+          imageUrl = data["imageUrl"] ?? null;
+
+          // kalau ada imageUrl, simpan URL
+          if (data["imageUrl"] != null &&
+              data["imageUrl"].toString().isNotEmpty) {
+            // simpan URL untuk ditampilkan via NetworkImage
+            // kalau lokal
+            // atau lebih aman: simpan ke variabel String urlImage
+          }
+        });
+      } else {
+        setState(() {
+          displayName = user?.email ?? "Pengguna";
+        });
+      }
+    } catch (e) {
+      print("Error load profile: $e");
     }
   }
 
@@ -480,7 +422,7 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
               ),
         )
         .toList();
-    List<Map<String, String>> filteredBerita1 = berita2
+    List<Map<String, String>> filteredBerita1 = tempat
         .where(
           (item) =>
               item["judul"]!.toLowerCase().contains(
@@ -530,9 +472,11 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                       onTap: widget.onProfileTap,
                       child: CircleAvatar(
                         radius: 20,
-                        backgroundImage: profileImage != null
-                            ? FileImage(profileImage!)
-                            : AssetImage("assets/images/fotoProfil.png"),
+                        backgroundImage:
+                            (imageUrl != null && imageUrl!.isNotEmpty)
+                            ? NetworkImage(imageUrl!)
+                            : AssetImage("assets/images/fotoProfil.png")
+                                  as ImageProvider,
                       ),
                     ),
                   ),
@@ -557,7 +501,6 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                         ),
                       ),
                     ),
-
                     Text(
                       displayName ?? user?.email ?? " Pengguna",
                       style: GoogleFonts.poppins(
@@ -567,12 +510,12 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
-
                 Spacer(),
-
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -581,7 +524,9 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                         top: MediaQuery.of(context).size.height * 0.05,
                         left: MediaQuery.of(context).size.width * 0.05,
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        Get.to(NotifikasiScreen());
+                      },
                       icon: Image.asset(
                         "assets/Icon/NotifIcon.png",
                         height:
@@ -614,7 +559,6 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                   width: MediaQuery.of(context).size.width * 0.9,
                   margin: EdgeInsets.only(
                     top: MediaQuery.of(context).size.height * 0.02,
-                    // left: MediaQuery.of(context).size.width * 0.1,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.transparent,
@@ -638,7 +582,6 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
-
                           children: [
                             Text(
                               text[0],
@@ -667,7 +610,6 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
               ],
             ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-            // batas atas dengan container bawah
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -694,7 +636,6 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.center,
-
                           children: [
                             Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -702,14 +643,19 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                               children: [
                                 Container(
                                   width:
-                                      MediaQuery.of(context).size.width *
-                                      0.14, // 18% dari lebar layar
+                                      MediaQuery.of(context).size.width * 0.14,
                                   height:
-                                      MediaQuery.of(context).size.width *
-                                      0.14, // biar bulat, pakai lebar
+                                      MediaQuery.of(context).size.width * 0.14,
                                   decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Color(0xFFA1DD9B),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Color(0xffA1EEBD),
+                                        Color(0xff48B570),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(5),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Color.fromARGB(50, 0, 0, 0),
@@ -724,7 +670,7 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                                       "assets/Icon/translate.png",
                                       height:
                                           MediaQuery.of(context).size.width *
-                                          0.13, // proporsional
+                                          0.13,
                                     ),
                                     onPressed: () {
                                       Get.to(VideoScreen());
@@ -760,14 +706,19 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                               children: [
                                 Container(
                                   width:
-                                      MediaQuery.of(context).size.width *
-                                      0.14, // 18% dari lebar layar
+                                      MediaQuery.of(context).size.width * 0.14,
                                   height:
-                                      MediaQuery.of(context).size.width *
-                                      0.14, // biar bulat, pakai lebar
+                                      MediaQuery.of(context).size.width * 0.14,
                                   decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Color(0xFF64C8F0),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Color(0xff7BD3EA),
+                                        Color(0xff008FD8),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(5),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Color.fromARGB(50, 0, 0, 0),
@@ -782,10 +733,7 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                                       "assets/Icon/voice.png",
                                       height:
                                           MediaQuery.of(context).size.height *
-                                          (75 /
-                                              MediaQuery.of(
-                                                context,
-                                              ).size.height),
+                                          0.1,
                                     ),
                                     onPressed: () {
                                       Get.to(BasicBA());
@@ -821,14 +769,19 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                               children: [
                                 Container(
                                   width:
-                                      MediaQuery.of(context).size.width *
-                                      0.14, // 18% dari lebar layar
+                                      MediaQuery.of(context).size.width * 0.14,
                                   height:
-                                      MediaQuery.of(context).size.width *
-                                      0.14, // biar bulat, pakai lebar
+                                      MediaQuery.of(context).size.width * 0.14,
                                   decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Color(0xFFA1DD9B),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Color(0xffA1EEBD),
+                                        Color(0xff48B570),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(5),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Color.fromARGB(50, 0, 0, 0),
@@ -882,14 +835,19 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                               children: [
                                 Container(
                                   width:
-                                      MediaQuery.of(context).size.width *
-                                      0.14, // 18% dari lebar layar
+                                      MediaQuery.of(context).size.width * 0.14,
                                   height:
-                                      MediaQuery.of(context).size.width *
-                                      0.14, // biar bulat, pakai lebar
+                                      MediaQuery.of(context).size.width * 0.14,
                                   decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Color(0xFF64C8F0),
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Color(0xff7BD3EA),
+                                        Color(0xff008FD8),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(5),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Color.fromARGB(50, 0, 0, 0),
@@ -943,18 +901,13 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.04,
                       ),
-
                       Padding(
                         padding: EdgeInsets.symmetric(
                           horizontal: screenWidth * 0.05,
                         ),
                         child: Container(
-                          width:
-                              MediaQuery.of(context).size.width *
-                              0.9, // 90% dari lebar layar
-                          height:
-                              MediaQuery.of(context).size.height *
-                              0.08, // 13% dari tinggi layar
+                          width: MediaQuery.of(context).size.width * 0.9,
+                          height: MediaQuery.of(context).size.height * 0.08,
                           decoration: BoxDecoration(
                             color: Color(0xff2F80ED),
                             borderRadius: BorderRadius.circular(5),
@@ -969,7 +922,7 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                                   "assets/Icon/botHome.png",
                                   height:
                                       MediaQuery.of(context).size.height *
-                                      0.055, // 7% dari tinggi layar
+                                      0.055,
                                 ),
                                 SizedBox(
                                   width:
@@ -1019,10 +972,9 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                                 Container(
                                   height:
                                       MediaQuery.of(context).size.height *
-                                      0.030, // 5% dari tinggi layar
+                                      0.030,
                                   width:
-                                      MediaQuery.of(context).size.width *
-                                      0.16, // 25% dari lebar layar
+                                      MediaQuery.of(context).size.width * 0.16,
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(30),
@@ -1055,7 +1007,7 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                           left: MediaQuery.of(context).size.width * 0.05,
                         ),
                         child: Text(
-                          "Berita Isyarat",
+                          "Artikel Terbaru",
                           style: GoogleFonts.poppins(
                             textStyle: const TextStyle(
                               fontSize: 15,
@@ -1069,8 +1021,7 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                         height: MediaQuery.of(context).size.height * 0.02,
                       ),
                       SizedBox(
-                        height: 200,
-
+                        height: 220,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: filteredBerita.length,
@@ -1125,8 +1076,7 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                                 Container(
                                   margin: EdgeInsets.only(left: 15),
                                   width:
-                                      MediaQuery.of(context).size.width *
-                                      0.6, // lebar sama dengan gambar
+                                      MediaQuery.of(context).size.width * 0.6,
                                   child: Text(
                                     item["judul"]!,
                                     style: GoogleFonts.poppins(
@@ -1136,15 +1086,13 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    textAlign: TextAlign
-                                        .left, // atau center sesuai kebutuhan
+                                    textAlign: TextAlign.left,
                                   ),
                                 ),
                                 Container(
                                   margin: EdgeInsets.only(left: 15),
                                   width:
-                                      MediaQuery.of(context).size.width *
-                                      0.6, // lebar sama dengan gambar
+                                      MediaQuery.of(context).size.width * 0.6,
                                   child: Text(
                                     item["deskripsi"]!,
                                     style: GoogleFonts.poppins(
@@ -1154,8 +1102,9 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    textAlign: TextAlign
-                                        .left, // atau center sesuai kebutuhan
+                                    overflow: TextOverflow.ellipsis,
+
+                                    textAlign: TextAlign.left,
                                   ),
                                 ),
                               ],
@@ -1196,7 +1145,7 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                           left: MediaQuery.of(context).size.width * 0.05,
                         ),
                         child: Text(
-                          "Berita Isyarat",
+                          "Rekomendasi Tempat Ramah Disabilitas",
                           style: GoogleFonts.poppins(
                             textStyle: const TextStyle(
                               fontSize: 15,
@@ -1211,7 +1160,6 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                       ),
                       SizedBox(
                         height: 200,
-
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: filteredBerita1.length,
@@ -1227,13 +1175,13 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => DetailBeritaPage(
-                                          judul: item["judul"]!,
-                                          logoBerita: item["logo berita"]!,
-                                          namaBerita: item["nama berita"]!,
-                                          waktu: item["waktu"]!,
+                                        builder: (context) => DetailTempatPage(
+                                          namaTempat: item["judul"]!,
+                                          kategori: item["nama tempat"]!,
                                           gambar: item["gambar"]!,
-                                          deskripsi: item["isi berita"]!,
+                                          deskripsi: item["deskripsi"]!,
+                                          instagram: item["instagram"]!,
+                                          maps: item["maps"]!,
                                         ),
                                       ),
                                     );
@@ -1266,37 +1214,17 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                                 Container(
                                   margin: EdgeInsets.only(left: 15),
                                   width:
-                                      MediaQuery.of(context).size.width *
-                                      0.6, // lebar sama dengan gambar
+                                      MediaQuery.of(context).size.width * 0.6,
                                   child: Text(
                                     item["judul"]!,
                                     style: GoogleFonts.poppins(
                                       textStyle: const TextStyle(
-                                        fontSize: 9,
+                                        fontSize: 10,
                                         color: Colors.black,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    textAlign: TextAlign
-                                        .left, // atau center sesuai kebutuhan
-                                  ),
-                                ),
-                                Container(
-                                  margin: EdgeInsets.only(left: 15),
-                                  width:
-                                      MediaQuery.of(context).size.width *
-                                      0.6, // lebar sama dengan gambar
-                                  child: Text(
-                                    item["deskripsi"]!,
-                                    style: GoogleFonts.poppins(
-                                      textStyle: const TextStyle(
-                                        fontSize: 7,
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    textAlign: TextAlign
-                                        .left, // atau center sesuai kebutuhan
+                                    textAlign: TextAlign.left,
                                   ),
                                 ),
                               ],
@@ -1304,9 +1232,7 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                           },
                         ),
                       ),
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.02,
-                      ),
+
                       Padding(
                         padding: EdgeInsets.only(
                           left: MediaQuery.of(context).size.width * 0.05,
@@ -1344,22 +1270,44 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                       SizedBox(
                         height: MediaQuery.of(context).size.height * 0.02,
                       ),
+                      // --- AWAL BAGIAN YANG DIUBAH ---
                       Padding(
-                        padding: EdgeInsets.only(
-                          left: MediaQuery.of(context).size.width * 0.05,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.05,
                         ),
-                        child: Text(
-                          "Artikel Terbaru",
-                          style: GoogleFonts.poppins(
-                            textStyle: const TextStyle(
-                              fontSize: 15,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w600,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Artikel Terbaru",
+                              style: GoogleFonts.poppins(
+                                textStyle: const TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
-                          ),
+                            // TextButton(
+                            //   onPressed: () {
+                            //     Get.to(() => WidgetArtikel());
+                            //   },
+                            //   child: Text(
+                            //     "Lihat Semua",
+                            //     style: GoogleFonts.poppins(
+                            //       textStyle: const TextStyle(
+                            //         fontSize: 12,
+                            //         color: Colors.blue,
+                            //         fontWeight: FontWeight.w600,
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
+                          ],
                         ),
                       ),
 
+                      // --- AKHIR BAGIAN YANG DIUBAH ---
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -1375,7 +1323,6 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Expanded supaya teks fleksibel
                                 Expanded(
                                   child: GestureDetector(
                                     onTap: () {
@@ -1400,7 +1347,7 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                                       padding: EdgeInsets.only(
                                         left:
                                             MediaQuery.of(context).size.height *
-                                            0.01 ,
+                                            0.01,
                                       ),
                                       child: Column(
                                         crossAxisAlignment:
@@ -1432,13 +1379,10 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                                     ),
                                   ),
                                 ),
-
                                 SizedBox(
                                   width:
                                       MediaQuery.of(context).size.width * 0.03,
                                 ),
-
-                                // Gambar Artikel
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(5),
                                   child: Image.asset(
@@ -1461,7 +1405,7 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                   ),
                 ),
                 Positioned(
-                  top: -20, // bikin nempel setengah keluar
+                  top: -20,
                   left: 8,
                   right: 8,
                   child: Padding(
@@ -1489,13 +1433,11 @@ Tanggal 23 September dipilih karena bertepatan dengan berdirinya Federasi Tuli S
                         controller: searchController,
                         decoration: InputDecoration(
                           border: InputBorder.none,
-
                           hintText: "Cari layanan, berita, komunitas...",
                           hintStyle: TextStyle(
                             color: Colors.grey,
                             fontSize: 10,
                           ),
-
                           prefixIcon: Icon(Icons.search, color: Colors.grey),
                           contentPadding: EdgeInsets.symmetric(vertical: 14),
                         ),

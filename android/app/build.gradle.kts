@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.i_hear"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion = "27.0.12077973"
 
     compileOptions {

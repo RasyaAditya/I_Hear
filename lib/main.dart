@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:i_hear/Pages/Auth/OTPScreen.dart';
 import 'package:i_hear/Pages/Home/HomePage.dart';
 import 'package:i_hear/Pages/Home/Opening.dart';
 import 'package:i_hear/Pages/Home/SplashScreen.dart';
+import 'Pages/Home/SplashScreen.dart';
+import 'Pages/Home/Opening.dart';
 import 'firebase_options.dart';
 import 'package:flutter/services.dart';
 

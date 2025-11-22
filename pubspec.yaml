@@ -29,6 +29,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   carousel_slider: ^5.1.1
+  cloud_firestore: ^6.0.2
   convex_bottom_bar: ^3.2.0
   cupertino_icons: ^1.0.8
   curved_navigation_bar: ^1.0.6
@@ -36,20 +37,27 @@ dependencies:
   firebase_ai: ^3.1.0
   firebase_auth: ^6.0.0
   firebase_core: ^4.0.0
+  firebase_storage: ^13.0.2
   flutter:
     sdk: flutter
+  flutter_google_places_sdk: ^0.4.2+1
   flutter_launcher_icons: ^0.14.4
+  flutter_markdown: ^0.7.7+1
+  flutter_polyline_points: ^3.1.0
   font_awesome_flutter: ^10.8.0
+  geocoding: ^4.0.0
+  geolocator: ^14.0.2
   get: ^4.7.2
   get_storage: ^2.1.1
   google_fonts: ^6.3.0
   google_generative_ai: ^0.4.7
-  google_maps_flutter: ^2.12.3
+  google_maps_flutter: ^2.13.1
   http: ^1.4.0
   image_picker: ^1.1.2
   intl: ^0.19.0
   mobile_scanner: ^7.0.1
   permission_handler: ^12.0.1
+  pinput: ^5.0.2
   provider: ^6.1.5
   shared_preferences: ^2.5.3
   smooth_page_indicator: ^1.2.1
@@ -111,22 +119,43 @@ flutter:
     - assets/Icon/voice.png
     - assets/Icon/abcd.png
     - assets/Icon/bot.png
+    - assets/Icon/otp_illustration.png
     - assets/Icon/logoNewW.png
     - assets/Icon/Ls1.png
     - assets/Icon/Ls2.png
     - assets/Icon/Ls3.png
     - assets/Icon/Ls4.png
     - assets/Icon/Ls5.png
+    - assets/Icon/Ls6.png
+    - assets/Icon/Ls7.png
     - assets/Icon/botHome.png
     - assets/Icon/botbiru.png
     - assets/images/Berita1.png
     - assets/images/Berita2.png
+    - assets/images/tmpt1.png
+    - assets/images/tmpt2.png
+    - assets/images/tmpt3.png
+    - assets/images/tmpt4.png
+    - assets/images/tmpt5.png
+    - assets/images/IP1.png
+    - assets/images/IP2.png
+    - assets/images/IP3.png
+    - assets/images/IP4.png
+    - assets/images/IP5.png
+    - assets/images/IP6.png
+    - assets/images/IP7.png
+    - assets/images/IP8.png
+    - assets/images/IP9.png
+    - assets/images/IP10.png
+    - assets/images/IP11.png
+    - assets/images/IP12.png
     - assets/images/Iklan1.png
     - assets/images/Iklan2.png
     - assets/images/Iklan3.png
     - assets/Icon/ComunityIconNew.png
     - assets/Icon/PhotoIcon.png
     - assets/Icon/AR.png
+    - assets/Icon/instagram.png
     - assets/Icon/c1.png
     - assets/Icon/c2.png
     - assets/Icon/c3.png
@@ -165,6 +194,78 @@ flutter:
     - assets/video/perkenalkan.mp4
     - assets/video/umur.mp4
     - assets/video/SplashScreen.mp4
+    - assets/video/1.mp4
+    - assets/video/2.mp4
+    - assets/video/3.mp4
+    - assets/video/4.mp4
+    - assets/video/5.mp4
+    - assets/video/6.mp4
+    - assets/video/7.mp4
+    - assets/video/9.mp4
+    - assets/video/10.mp4
+    - assets/video/kaget.mp4
+    - assets/video/kecewa.mp4
+    - assets/video/kesal.mp4
+    - assets/video/malu.mp4
+    - assets/video/marah.mp4
+    - assets/video/menyakitkan.mp4
+    - assets/video/sedih.mp4
+    - assets/video/senang.mp4
+    - assets/video/takut.mp4
+    - assets/video/tersinggung.mp4
+    - assets/video/halo.mp4
+    - assets/video/sampai-jumpa.mp4
+    - assets/video/sampai-ketemu-lagi.mp4
+    - assets/video/selamat-malam.mp4
+    - assets/video/selamat-pagi.mp4
+    - assets/video/selamat-siang.mp4
+    - assets/video/selamat-sore.mp4
+    - assets/video/selamat-tinggal.mp4
+    - assets/video/Transportasi.mp4
+    - assets/video/Sepeda.mp4
+    - assets/video/Perahu.mp4
+    - assets/video/Mobil.mp4
+    - assets/video/Motor.mp4
+    - assets/video/Kendaraan.mp4
+    - assets/video/Kapal.mp4
+    - assets/video/Grabcar.mp4
+    - assets/video/Grabbike.mp4
+    - assets/video/Grab.mp4
+    - assets/video/Gocar.mp4
+    - assets/video/Bus.mp4
+    - assets/video/Angkutan umum.mp4
+    - assets/video/Becak.mp4
+    - assets/video/Truk.mp4
+    - assets/video/Pesawat.mp4
+    - assets/video/Keretaapi.mp4
+    - assets/video/A.mp4
+    - assets/video/B.mp4
+    - assets/video/C.mp4
+    - assets/video/D.mp4
+    - assets/video/E.mp4
+    - assets/video/F.mp4
+    - assets/video/G.mp4
+    - assets/video/H.mp4
+    - assets/video/I.mp4
+    - assets/video/J.mp4
+    - assets/video/K.mp4
+    - assets/video/L.mp4
+    - assets/video/M.mp4
+    - assets/video/N.mp4
+    - assets/video/O.mp4
+    - assets/video/P.mp4
+    - assets/video/Q.mp4
+    - assets/video/R.mp4
+    - assets/video/S.mp4
+    - assets/video/T.mp4
+    - assets/video/U.mp4
+    - assets/video/V.mp4
+    - assets/video/W.mp4
+    - assets/video/X.mp4
+    - assets/video/Y.mp4
+    - assets/video/Z.mp4
+    - assets/Data/stops.txt
+    - assets/video/
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
   # For details regarding adding assets from package dependencies, see

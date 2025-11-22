@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const CustomAppBar({super.key});
+  final String? titleText; // <-- tambahin ini
+
+  const CustomAppBar({super.key, this.titleText});
 
   @override
   Size get preferredSize => const Size.fromHeight(180);
@@ -18,10 +20,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        // borderRadius: BorderRadius.only(
-        //   bottomLeft: Radius.circular(24),
-        //   bottomRight: Radius.circular(24),
-        // ),
       ),
       child: SafeArea(
         child: Padding(
@@ -33,7 +31,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Tombol Back
                   CircleAvatar(
                     backgroundColor: Colors.white,
                     maxRadius: 20,
@@ -44,7 +41,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       },
                     ),
                   ),
-                  // Tombol Notifikasi
                   CircleAvatar(
                     backgroundColor: Colors.white,
                     child: IconButton(
@@ -65,7 +61,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Image.asset(
-                    "assets/Icon/bot.png", // ganti dengan asset maskotmu
+                    "assets/Icon/bot.png",
                     height: MediaQuery.of(context).size.height * 0.09,
                   ),
                   SizedBox(width: MediaQuery.of(context).size.width * 0.04),
@@ -74,7 +70,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Ayo Belajar Bahasa Isyarat",
+                          titleText ??
+                              "Ayo Belajar Bahasa Isyarat", // <-- pake titleText kalo ada
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

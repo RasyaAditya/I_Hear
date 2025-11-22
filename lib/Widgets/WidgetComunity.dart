@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -20,6 +21,8 @@ class WidgetComunity extends StatefulWidget {
 class _WidgetComunityState extends State<WidgetComunity> {
   String kategoriAktif = "Semua";
   String cari = "";
+  String phoneNumber = "-";
+  String? imageUrl;
 
   final List<Map<String, String>> komunitas = [
     {
@@ -75,19 +78,38 @@ class _WidgetComunityState extends State<WidgetComunity> {
     _loadProfileData();
   }
 
-  void _loadProfileData() {
-    final box = GetStorage();
-    final data = box.read("Data_${user?.email}");
+  void _loadProfileData() async {
+    final uid = user?.uid;
+    if (uid == null) return;
 
-    if (data != null) {
-      setState(() {
-        displayName = data["DisplayName"] ?? "Pengguna";
-        if (data["Image"] != null) {
-          profileImage = File(data["Image"]);
-        }
-      });
-    } else {
-      displayName = user?.email ?? "Pengguna";
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .get();
+
+      if (snapshot.exists) {
+        final data = snapshot.data()!;
+        setState(() {
+          displayName = data["username"] ?? "Pengguna"; // ambil dari Firestore
+          phoneNumber = data["phone"] ?? "-";
+          imageUrl = data["imageUrl"] ?? null;
+
+          // kalau ada imageUrl, simpan URL
+          if (data["imageUrl"] != null &&
+              data["imageUrl"].toString().isNotEmpty) {
+            // simpan URL untuk ditampilkan via NetworkImage
+            // kalau lokal
+            // atau lebih aman: simpan ke variabel String urlImage
+          }
+        });
+      } else {
+        setState(() {
+          displayName = user?.email ?? "Pengguna";
+        });
+      }
+    } catch (e) {
+      print("Error load profile: $e");
     }
   }
 
@@ -155,11 +177,14 @@ class _WidgetComunityState extends State<WidgetComunity> {
                                   onTap: widget.onProfileTap,
                                   child: CircleAvatar(
                                     radius: 20,
-                                    backgroundImage: profileImage != null
-                                        ? FileImage(profileImage!)
+                                    backgroundImage:
+                                        (imageUrl != null &&
+                                            imageUrl!.isNotEmpty)
+                                        ? NetworkImage(imageUrl!)
                                         : AssetImage(
-                                            "assets/images/fotoProfil.png",
-                                          ),
+                                                "assets/images/fotoProfil.png",
+                                              )
+                                              as ImageProvider,
                                   ),
                                 ),
                               ),
@@ -187,6 +212,8 @@ class _WidgetComunityState extends State<WidgetComunity> {
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                   ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),

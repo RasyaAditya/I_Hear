@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,6 @@ import 'package:i_hear/Pages/Auth/DaftarPage.dart';
 import 'package:i_hear/Pages/Home/LoginSukses.dart';
 import '../../Models/auth_service.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class MasukPage extends StatefulWidget {
   const MasukPage({super.key});
@@ -23,25 +23,6 @@ class _MasukPageState extends State<MasukPage> {
   bool isHidden = true;
 
   @override
-  void initState() {
-    super.initState();
-    _loadSavedLogin();
-  }
-
-  Future<void> _loadSavedLogin() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? savedEmail = prefs.getString('email');
-    String? savedPassword = prefs.getString('password');
-
-    if (savedEmail != null && savedPassword != null) {
-      setState(() {
-        email.text = savedEmail;
-        password.text = savedPassword;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
@@ -53,17 +34,14 @@ class _MasukPageState extends State<MasukPage> {
           padding: EdgeInsets.symmetric(horizontal: size.width * 0.1),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               SizedBox(height: size.height * 0.1),
               Text(
                 "Masuk",
                 style: GoogleFonts.poppins(
-                  textStyle: TextStyle(
-                    fontSize: size.width * 0.065, // responsive
-                    color: const Color(0xFF2F80ED),
-                    fontWeight: FontWeight.w700,
-                  ),
+                  fontSize: size.width * 0.065,
+                  color: const Color(0xFF2F80ED),
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               SizedBox(height: size.height * 0.02),
@@ -71,26 +49,21 @@ class _MasukPageState extends State<MasukPage> {
                 "Selamat datang kembali,\nKami merindukan Anda!",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                  textStyle: TextStyle(
-                    color: Colors.black,
-                    fontSize: size.width * 0.045, // responsive
-                    fontWeight: FontWeight.w400,
-                  ),
+                  fontSize: size.width * 0.045,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
               SizedBox(height: size.height * 0.10),
-              Column(mainAxisAlignment: MainAxisAlignment.start, children: [
-                  
-                ],
-              ),
+
               Expanded(
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     _buildInputField(email, "Email", false, size),
                     SizedBox(height: size.height * 0.02),
                     _buildInputField(password, "Kata Sandi", true, size),
                     SizedBox(height: size.height * 0.01),
+
                     Align(
                       alignment: Alignment.centerRight,
                       child: Text.rich(
@@ -115,6 +88,8 @@ class _MasukPageState extends State<MasukPage> {
                       ),
                     ),
                     SizedBox(height: size.height * 0.04),
+
+                    // Tombol login
                     SizedBox(
                       width: double.infinity,
                       height: size.height * 0.07,
@@ -126,14 +101,17 @@ class _MasukPageState extends State<MasukPage> {
                         child: Text(
                           "Masuk",
                           style: GoogleFonts.poppins(
-                            fontSize: size.width * 0.05, // responsive
+                            fontSize: size.width * 0.05,
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
+
                     SizedBox(height: size.height * 0.05),
+
+                    // Link daftar
                     Text.rich(
                       TextSpan(
                         text: 'Tidak memiliki akun? ',
@@ -153,12 +131,14 @@ class _MasukPageState extends State<MasukPage> {
                               fontWeight: FontWeight.bold,
                             ),
                             recognizer: TapGestureRecognizer()
-                              ..onTap = () => Get.to(Daftarpage()),
+                              ..onTap = () => Get.to(const Daftarpage()),
                           ),
                         ],
                       ),
                     ),
+
                     SizedBox(height: size.height * 0.1),
+
                     Text(
                       "Atau lanjutkan dengan",
                       style: GoogleFonts.poppins(
@@ -168,6 +148,7 @@ class _MasukPageState extends State<MasukPage> {
                       ),
                     ),
                     SizedBox(height: size.height * 0.02),
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -178,7 +159,6 @@ class _MasukPageState extends State<MasukPage> {
                         _buildSocialButton(FontAwesomeIcons.apple, size),
                       ],
                     ),
-                    SizedBox(height: size.height * 0.02),
                   ],
                 ),
               ),
@@ -189,6 +169,7 @@ class _MasukPageState extends State<MasukPage> {
     );
   }
 
+  // Input Field
   Widget _buildInputField(
     TextEditingController controller,
     String hint,
@@ -236,6 +217,7 @@ class _MasukPageState extends State<MasukPage> {
     );
   }
 
+  // Social Button Dummy
   Widget _buildSocialButton(IconData icon, Size size) {
     return Container(
       height: size.height * 0.050,
@@ -248,6 +230,7 @@ class _MasukPageState extends State<MasukPage> {
     );
   }
 
+  // Handle Login
   void _handleLogin() async {
     String mail = email.text.trim();
     String pass = password.text.trim();
@@ -260,31 +243,50 @@ class _MasukPageState extends State<MasukPage> {
     }
 
     try {
-      await authService.value.signIn(email: mail, password: pass).then((
-        _,
-      ) async {
-        User? user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          final box = GetStorage();
-          final savedEmail = box.read("email");
+      // 1) Login ke Firebase Auth
+      await authService.value.signIn(email: mail, password: pass);
 
-          if (savedEmail == user.email) {
-            print("Email sama, data lama dipakai");
-          } else {
-            print("Email beda atau belum ada, reset semua");
-            await box.erase();
-            box.write("email", user.email);
-            box.write("Data", {
-              "DisplayName": user.displayName ?? "Pengguna",
-              "Image": null,
-            });
-          }
-        }
+      // 2) Ambil user
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) throw Exception("User null setelah login");
 
-        Get.offAll(LoginSuccessPage());
-      });
+      // 3) Ambil data profil dari Firestore
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      Map<String, dynamic> profileData = {};
+      if (doc.exists) {
+        final data = doc.data()!;
+        profileData = {
+          'DisplayName': data['username'] ?? user.displayName ?? '',
+          'Image': data['imageUrl'] ?? null,
+          'Phone': data['phone'] ?? '',
+        };
+      } else {
+        profileData = {
+          'DisplayName':
+              user.displayName ?? user.email?.split('@').first ?? 'Pengguna',
+          'Image': null,
+          'Phone': '',
+        };
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'username': profileData['DisplayName'],
+          'phone': '',
+          'imageUrl': '',
+          'email': user.email,
+        }, SetOptions(merge: true));
+      }
+
+      // 4) Simpan ke GetStorage
+      final box = GetStorage();
+      await box.write('Data_${user.email}', profileData);
+
+      // 5) Navigasi ke home
+      Get.offAll(const LoginSuccessPage());
     } catch (err) {
-      print(err);
+      print("Login error: $err");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Login gagal. Periksa kembali data Anda.'),

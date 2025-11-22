@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:get/get.dart';
@@ -19,7 +20,10 @@ class _WidgetProfilState extends State<WidgetProfil> {
   final User? user = FirebaseAuth.instance.currentUser;
   String? displayName;
   File? profileImage;
-  String? email;
+  String? phoneNumber;
+  String? password;
+  String? imageUrl;
+  bool _isPasswordVisible = false; // buat toggle lihat/smbunyi password
 
   @override
   void initState() {
@@ -27,242 +31,325 @@ class _WidgetProfilState extends State<WidgetProfil> {
     _loadProfileData();
   }
 
-  void _loadProfileData() {
-    final box = GetStorage();
-    final data = box.read("Data_${user?.email}");
+  void _loadProfileData() async {
+    final uid = user?.uid;
+    if (uid == null) return;
 
-    if (data != null) {
-      setState(() {
-        displayName = data["DisplayName"] ?? "Pengguna";
-        if (data["Image"] != null) {
-          profileImage = File(data["Image"]);
-        }
-      });
-    } else {
-      displayName = user?.email ?? "Pengguna";
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .get();
+
+      if (snapshot.exists) {
+        final data = snapshot.data()!;
+        print("Data Firestore: $data"); // Debugging
+
+        setState(() {
+          displayName = data["username"] ?? "Pengguna";
+          phoneNumber = data["phone"] ?? "-";
+          password = data["password"] ?? "-"; // ⚠️ sebaiknya jangan plain text
+          imageUrl = data["imageUrl"]; // ambil URL gambar dari Firestore
+        });
+      } else {
+        setState(() {
+          displayName = user?.email ?? "Pengguna";
+        });
+      }
+    } catch (e) {
+      print("Error load profile: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final lebar = MediaQuery.of(context).size.width;
+    final tinggi = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(
-                top: MediaQuery.of(context).size.height * 0.05,
-              ),
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 65,
-                    backgroundImage: profileImage != null
-                        ? FileImage(profileImage!)
-                        : AssetImage("assets/images/fotoProfil.png")
-                              as ImageProvider,
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection("users")
+            .doc(user!.uid)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            // Nama dari GetStorage
-            Center(
-              child: Text(
-                displayName ?? "Pengguna",
-                style: GoogleFonts.poppins(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: Text("Data profil tidak ditemukan"));
+          }
 
-            // Email dari Firebase
-            Center(
-              child: Text(
-                user?.email ?? 'Email tidak tersedia',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  color: Color(0xFF595959),
-                ),
-              ),
-            ),
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          final displayName = data["username"] ?? "Pengguna";
+          final email = data["email"] ?? "Email tidak tersedia";
+          final password = data["password"] ?? "-";
+          final imageUrl = data["imageUrl"];
 
-            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(lebar * 0.04),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // HEADER PROFIL
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: lebar * 0.06,
+                      backgroundImage: imageUrl != null && imageUrl.isNotEmpty
+                          ? NetworkImage(imageUrl)
+                          : const AssetImage("assets/images/fotoProfil.png")
+                                as ImageProvider,
+                    ),
+                    SizedBox(width: lebar * 0.03),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            displayName,
+                            style: GoogleFonts.poppins(
+                              fontSize: lebar * 0.038,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Text(
+                            email,
+                            style: GoogleFonts.poppins(
+                              fontSize: lebar * 0.030,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: tinggi * 0.03),
+
+                // INFORMASI PRIBADI
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Informasi Pribadi",
+                      style: GoogleFonts.poppins(
+                        fontSize: lebar * 0.034,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        final result = await Get.to(() => const EditProfile());
+                        if (result == true) {
+                          // reload data dari Firestore
+                          _loadProfileData();
+                          setState(() {});
+                        }
+                      },
+                      child: Text(
+                        "Edit Profil",
+                        style: GoogleFonts.poppins(
+                          fontSize: lebar * 0.030,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF2F80ED),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: tinggi * 0.01),
+
+                _infoRow(displayName, lebar),
+                _infoRow(email, lebar),
+                _infoRow(phoneNumber ?? "-", lebar),
+                PasswordRow(password: password, lebar: lebar),
+
+                SizedBox(height: tinggi * 0.03),
+
+                // INFORMASI APLIKASI
+                Text(
+                  "Informasi Aplikasi",
+                  style: GoogleFonts.poppins(
+                    fontSize: lebar * 0.034,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(height: tinggi * 0.01),
+                _menuItem("Tentang Kami", lebar, () {}),
+                _menuItem("Pengaturan Notifikasi", lebar, () {}),
+                _menuItem("Pengaturan Privasi", lebar, () {}),
+                _menuItem("Mengajukan Pertanyaan", lebar, () {}),
+                _menuItem("Kebijakan Privasi", lebar, () {}),
+
+                SizedBox(height: tinggi * 0.03),
+
+                // TOMBOL KELUAR
                 SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.40,
-                  height: MediaQuery.of(context).size.height * 0.045,
+                  width: double.infinity,
+                  height: tinggi * 0.05,
                   child: ElevatedButton(
                     onPressed: () async {
-                      final updated = await Get.to(EditProfile());
-                      if (updated == true) {
-                        _loadProfileData(); // refresh data
-                      }
+                      await authService.value.signOut().then((_) async {
+                        Get.deleteAll();
+                        Get.offAll(LoginPage());
+                      });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF2F80ED),
+                      backgroundColor: const Color(0xFF2F80ED),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50),
+                        borderRadius: BorderRadius.circular(lebar * 0.1),
                       ),
                     ),
                     child: Text(
-                      "Edit Profil",
+                      "Keluar",
                       style: GoogleFonts.poppins(
-                        fontSize: 13,
+                        fontSize: lebar * 0.034,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
                     ),
                   ),
                 ),
-                SizedBox(width: MediaQuery.of(context).size.width * 0.05),
-                SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.40,
-                  height: MediaQuery.of(context).size.height * 0.045,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50),
+
+                SizedBox(height: tinggi * 0.03),
+
+                // FOOTER
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        "Versi App 1.3.7 Build 4708090",
+                        style: GoogleFonts.poppins(
+                          fontSize: lebar * 0.027,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
                       ),
-                      side: BorderSide(color: Color(0xFF2F80ED), width: 2),
-                    ),
-                    child: Text(
-                      "Daftar Teman",
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF2F80ED),
+                      SizedBox(height: tinggi * 0.005),
+                      Text(
+                        "© SMK26JKT Team and Developer. All rights Reserved",
+                        style: GoogleFonts.poppins(
+                          fontSize: lebar * 0.027,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
+                    ],
                   ),
                 ),
+                SizedBox(height: tinggi * 0.05),
               ],
             ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    ListTile(
-                      title: Text(
-                        "Pengaturan Notifikasi",
-                        style: TextStyle(fontSize: 16, color: Colors.black87),
-                      ),
-                      trailing: Icon(Icons.chevron_right, color: Colors.grey),
-                      onTap: () {
-                        print("Pengaturan Notifikasi diklik");
-                      },
-                    ),
-                    Divider(height: 1, thickness: 0.5, color: Colors.grey[300]),
-                    ListTile(
-                      title: Text(
-                        "Pengaturan Privasi",
-                        style: TextStyle(fontSize: 16, color: Colors.black87),
-                      ),
-                      trailing: Icon(Icons.chevron_right, color: Colors.grey),
-                      onTap: () {
-                        print("Pengaturan Privasi diklik");
-                      },
-                    ),
-                    Divider(height: 1, thickness: 0.5, color: Colors.grey[300]),
-                    ListTile(
-                      title: Text(
-                        "Mengajukan Pertanyaan",
-                        style: TextStyle(fontSize: 16, color: Colors.black87),
-                      ),
-                      trailing: Icon(Icons.chevron_right, color: Colors.grey),
-                      onTap: () {
-                        print("Mengajukan Pertanyaan diklik");
-                      },
-                    ),
-                    Divider(height: 1, thickness: 0.5, color: Colors.grey[300]),
-                    ListTile(
-                      title: Text(
-                        "Kebijakan Privasi",
-                        style: TextStyle(fontSize: 16, color: Colors.black87),
-                      ),
-                      trailing: Icon(Icons.chevron_right, color: Colors.grey),
-                      onTap: () {
-                        print("Kebijakan Privasi diklik");
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          );
+        },
+      ),
+    );
+  }
 
-            // Tombol Logout
-            SizedBox(height: 20),
-            SizedBox(
-              width: 145,
-              height: 40,
-              child: ElevatedButton(
-                onPressed: () async {
-                  final box = GetStorage();
-                  await authService.value.signOut().then((_) async {
-                    Get.deleteAll(); // hapus semua dependency GetX
-                    Get.offAll(LoginPage());
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF2F80ED),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                ),
-                child: Text(
-                  "Keluar",
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-            Text(
-              "Versi 1.0.0",
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
-            ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-            Text(
-              "© SMK26JKT Team and Developer. All rights Reversed",
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
-            ),
-            SizedBox(height: MediaQuery.of(context).size.height * 0.1),
-          ],
+  Widget _infoRow(String text, double lebar) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        vertical: lebar * 0.028,
+        horizontal: lebar * 0.02,
+      ),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.shade300, width: 0.5),
         ),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.poppins(
+          fontSize: lebar * 0.031,
+          color: Colors.black87,
+        ),
+      ),
+    );
+  }
+
+  Widget _menuItem(String title, double lebar, VoidCallback onTap) {
+    return Column(
+      children: [
+        ListTile(
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+          title: Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: lebar * 0.032,
+              color: Colors.black87,
+            ),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: Colors.grey,
+            size: lebar * 0.05,
+          ),
+          onTap: onTap,
+        ),
+        Divider(height: 1, thickness: 0.5, color: Colors.grey.shade300),
+      ],
+    );
+  }
+}
+
+class PasswordRow extends StatefulWidget {
+  final String password;
+  final double lebar;
+
+  const PasswordRow({super.key, required this.password, required this.lebar});
+
+  @override
+  State<PasswordRow> createState() => _PasswordRowState();
+}
+
+class _PasswordRowState extends State<PasswordRow> {
+  bool _isPasswordVisible = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        vertical: widget.lebar * 0.010,
+        horizontal: widget.lebar * 0.02,
+      ),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.shade300, width: 0.5),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            _isPasswordVisible ? widget.password : "●●●●●●●●",
+            style: GoogleFonts.poppins(
+              fontSize: widget.lebar * 0.031,
+              color: Colors.black87,
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+              size: widget.lebar * 0.05,
+              color: Colors.grey,
+            ),
+            onPressed: () {
+              setState(() {
+                _isPasswordVisible = !_isPasswordVisible;
+              });
+            },
+          ),
+        ],
       ),
     );
   }

@@ -813,7 +813,7 @@ Rapat ini dihadiri oleh 14 K/L, antara lain Sesditjen Kemendiktisaintek, Direktu
                 right: MediaQuery.of(context).size.width * 0.62,
               ),
               child: Text(
-                "Berita Isyarat",
+                "Berita Terbaru",
                 style: GoogleFonts.poppins(
                   textStyle: const TextStyle(
                     fontSize: 15,
@@ -903,6 +903,7 @@ Rapat ini dihadiri oleh 14 K/L, antara lain Sesditjen Kemendiktisaintek, Direktu
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                          overflow: TextOverflow.ellipsis,
                           textAlign:
                               TextAlign.left, // atau center sesuai kebutuhan
                         ),

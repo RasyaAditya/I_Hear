@@ -1,8 +1,10 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:dash_chat_2/dash_chat_2.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:firebase_ai/firebase_ai.dart'; // UBAH IMPORT INI
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -18,7 +20,9 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final User? firebaseUser = FirebaseAuth.instance.currentUser;
   String? displayName;
-  File? profileImage;
+  String? imageUrl;
+  String? finalName;
+  String? finalImage;
 
   ChatUser? currentChatUser;
   late ChatUser bot;
@@ -31,48 +35,65 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _loadProfileData();
-    _initGemini();
+    _initFirebaseAI(); // UBAH PEMANGGILAN METHOD
   }
 
-  void _loadProfileData() {
-    final box = GetStorage();
-    final email = firebaseUser?.email ?? "";
-    final data = box.read("Data_$email");
+  void _loadProfileData() async {
+    final uid = firebaseUser?.uid;
+    if (uid == null) return;
 
-    String finalName;
-    String? finalImage;
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection("users")
+          .doc(uid)
+          .get();
 
-    if (data != null) {
-      finalName = data["DisplayName"] ?? "Pengguna";
-      if (data["Image"] != null) {
-        finalImage = File(data["Image"]).path;
+      if (snapshot.exists) {
+        final data = snapshot.data()!;
+        setState(() {
+          displayName = data["username"] ?? "Pengguna"; // ambil dari Firestore
+          imageUrl = data["imageUrl"] ?? null;
+
+          currentChatUser = ChatUser(
+            id: firebaseUser?.uid ?? "1",
+            firstName: finalName,
+            profileImage: finalImage != null ? "file://$finalImage" : null,
+          );
+
+          bot = ChatUser(
+            id: "2",
+            firstName: "Sapa.AI",
+            profileImage: "https://img.icons8.com/3d-fluency/94/bot.png",
+          );
+
+          // kalau ada imageUrl, simpan URL
+          if (data["imageUrl"] != null &&
+              data["imageUrl"].toString().isNotEmpty) {
+            // simpan URL untuk ditampilkan via NetworkImage
+            // kalau lokal
+            // atau lebih aman: simpan ke variabel String urlImage
+          }
+        });
+      } else {
+        setState(() {
+          displayName = firebaseUser?.email ?? "Pengguna";
+        });
       }
-    } else {
-      finalName = firebaseUser?.email ?? "Pengguna";
-      finalImage = null;
+    } catch (e) {
+      print("Error load profile: $e");
     }
-
-    setState(() {
-      displayName = finalName;
-      profileImage = finalImage != null ? File(finalImage) : null;
-
-      currentChatUser = ChatUser(
-        id: firebaseUser?.uid ?? "1",
-        firstName: finalName,
-        profileImage: finalImage != null ? "file://$finalImage" : null,
-      );
-
-      bot = ChatUser(
-        id: "2",
-        firstName: "Sapa.AI",
-        profileImage: "https://img.icons8.com/3d-fluency/94/bot.png",
-      );
-    });
   }
 
-  void _initGemini() {
-    const apiKey = "AIzaSyCqljg_5KnIN5ePU4EDBoj52hWwdlgVygo";
-    model = GenerativeModel(model: "gemini-1.5-flash", apiKey: apiKey);
+  // GANTI METHOD INI
+  void _initFirebaseAI() {
+    // Tidak perlu API Key, karena sudah terhubung dengan project Firebase Anda
+    model = FirebaseAI.googleAI().generativeModel(
+      model: 'gemini-2.5-flash', // Nama model yang umum untuk Vertex AI
+      // Anda bisa menambahkan safety settings di sini jika perlu
+      // safetySettings: [
+      //   SafetySetting(HarmCategory.harassment, HarmBlockThreshold.high),
+      // ],
+    );
     chat = model.startChat();
   }
 
@@ -81,22 +102,177 @@ class _ChatScreenState extends State<ChatScreen> {
       messages.insert(0, m);
     });
 
-    final response = await chat.sendMessage(Content.text(m.text));
-    final reply = response.text ?? "Maaf, saya tidak bisa menjawab.";
+    try {
+      // Baris ini tidak perlu diubah karena API-nya sama
+      final response = await chat.sendMessage(Content.text(m.text));
+      final reply = response.text ?? "Maaf, saya tidak bisa menjawab.";
 
-    final botMessage = ChatMessage(
-      user: bot,
-      createdAt: DateTime.now(),
-      text: reply,
+      final botMessage = ChatMessage(
+        user: bot,
+        createdAt: DateTime.now(),
+        text: reply,
+      );
+
+      setState(() {
+        messages.insert(0, botMessage);
+      });
+    } catch (e) {
+      final errorMessage = ChatMessage(
+        user: bot,
+        createdAt: DateTime.now(),
+        text: "Maaf, terjadi kesalahan. Coba lagi nanti.",
+      );
+      setState(() {
+        messages.insert(0, errorMessage);
+      });
+    }
+
+    FocusScope.of(context).unfocus();
+  }
+
+  // --- TIDAK ADA PERUBAHAN PADA KODE UI DI BAWAH INI ---
+
+  Widget _buildEmptyChatView(double screenWidth, double screenHeight) {
+    // ... kode UI tidak berubah ...
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset("assets/Icon/botbiru.png", height: screenHeight * 0.15),
+            SizedBox(height: screenHeight * 0.03),
+            Text(
+              "Sapa Bot",
+              style: GoogleFonts.poppins(
+                fontSize: screenWidth * 0.07,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xff2F80ED),
+              ),
+            ),
+            Text(
+              "Teman Virtual Kamu",
+              style: GoogleFonts.poppins(
+                fontSize: screenWidth * 0.05,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            SizedBox(height: screenHeight * 0.015),
+            Text(
+              "Jalani Hari-harimu bersama Sapa Bot.\nJadikan Sapa Bot teman bermainmu!",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: screenWidth * 0.035,
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
+  }
 
-    setState(() {
-      messages.insert(0, botMessage);
-    });
+  Widget _buildCustomMessageRow(
+    ChatMessage message,
+    bool isCurrentUser,
+    double screenWidth,
+    double screenHeight,
+  ) {
+    // ... kode UI tidak berubah ...
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        vertical: screenHeight * 0.007,
+        horizontal: screenWidth * 0.02,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: isCurrentUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        children: [
+          if (!isCurrentUser) ...[
+            CircleAvatar(
+              radius: screenWidth * 0.05,
+              backgroundColor: Colors.grey[300],
+              backgroundImage: const AssetImage("assets/Icon/AR.png"),
+            ),
+            SizedBox(width: screenWidth * 0.02),
+          ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: isCurrentUser
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      message.user.firstName ?? "",
+                      style: GoogleFonts.poppins(
+                        fontSize: screenWidth * 0.035,
+                        fontWeight: FontWeight.w600,
+                        color: isCurrentUser ? Colors.blue : Colors.black87,
+                      ),
+                    ),
+                    if (isCurrentUser) ...[
+                      SizedBox(width: screenWidth * 0.02),
+                      CircleAvatar(
+                        radius: screenWidth * 0.05,
+                        backgroundImage:
+                            (imageUrl != null && imageUrl!.isNotEmpty)
+                            ? NetworkImage(imageUrl!)
+                            : const AssetImage("assets/images/fotoProfil.png")
+                                  as ImageProvider,
+                      ),
+                    ],
+                  ],
+                ),
+                SizedBox(height: screenHeight * 0.005),
+                Container(
+                  padding: EdgeInsets.all(screenWidth * 0.03),
+                  decoration: BoxDecoration(
+                    color: isCurrentUser
+                        ? const Color(0xff2F80ED)
+                        : Colors.grey[200],
+                    borderRadius: BorderRadius.circular(screenWidth * 0.04),
+                  ),
+                  child: MarkdownBody(
+                    data: message.text,
+                    styleSheet: MarkdownStyleSheet(
+                      p: GoogleFonts.poppins(
+                        fontSize: screenWidth * 0.038,
+                        color: isCurrentUser ? Colors.white : Colors.black,
+                      ),
+                      strong: GoogleFonts.poppins(
+                        fontSize: screenWidth * 0.038,
+                        fontWeight: FontWeight.bold,
+                        color: isCurrentUser ? Colors.white : Colors.black,
+                      ),
+                      em: GoogleFonts.poppins(
+                        fontSize: screenWidth * 0.038,
+                        fontStyle: FontStyle.italic,
+                        color: isCurrentUser ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // ... kode UI tidak berubah ...
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+
     return Scaffold(
       backgroundColor: const Color(0xffF5F7FA),
       appBar: AppBar(
@@ -104,7 +280,7 @@ class _ChatScreenState extends State<ChatScreen> {
           "Chat Bot",
           style: GoogleFonts.poppins(
             color: Colors.white,
-            fontSize: 16,
+            fontSize: screenWidth * 0.045,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -126,145 +302,95 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: currentChatUser == null
           ? const Center(child: CircularProgressIndicator())
-          : DashChat(
-              currentUser: currentChatUser!,
-              onSend: sendMessage,
-              messages: messages,
-              messageOptions: MessageOptions(
-                showCurrentUserAvatar: false,
-                showOtherUsersAvatar: false,
-                messageRowBuilder:
-                    (
-                      ChatMessage message,
-                      ChatMessage? previous,
-                      ChatMessage? next,
-                      bool isAfterDateSeparator,
-                      bool isBeforeDateSeparator,
-                    ) {
-                      bool isCurrentUser =
-                          message.user.id == currentChatUser!.id;
-
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 6,
-                          horizontal: 8,
+          : Column(
+              children: [
+                Expanded(
+                  child: Stack(
+                    children: [
+                      if (messages.isEmpty)
+                        _buildEmptyChatView(screenWidth, screenHeight),
+                      DashChat(
+                        currentUser: currentChatUser!,
+                        onSend: sendMessage,
+                        messages: messages,
+                        messageOptions: MessageOptions(
+                          showCurrentUserAvatar: false,
+                          showOtherUsersAvatar: false,
+                          messageRowBuilder:
+                              (
+                                ChatMessage message,
+                                ChatMessage? previous,
+                                ChatMessage? next,
+                                bool isAfterDateSeparator,
+                                bool isBeforeDateSeparator,
+                              ) {
+                                bool isCurrentUser =
+                                    message.user.id == currentChatUser!.id;
+                                return _buildCustomMessageRow(
+                                  message,
+                                  isCurrentUser,
+                                  screenWidth,
+                                  screenHeight,
+                                );
+                              },
                         ),
-                        child: Column(
-                          crossAxisAlignment: isCurrentUser
-                              ? CrossAxisAlignment.end
-                              : CrossAxisAlignment.start,
-                          children: [
-                            // Nama user tepat di atas bubble
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                bottom: 2,
-                              ), // biar rapat ke bubble
-                              child: Text(
-                                message.user.firstName ?? "",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: isCurrentUser
-                                      ? Colors.blue
-                                      : Colors.black87,
-                                ),
+                        inputOptions: InputOptions(
+                          inputToolbarStyle: BoxDecoration(
+                            color: const Color(0xffF5F7FA),
+                            border: Border(
+                              top: BorderSide(
+                                color: Colors.grey.shade300,
+                                width: 1.0,
                               ),
                             ),
-
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              mainAxisAlignment: isCurrentUser
-                                  ? MainAxisAlignment.end
-                                  : MainAxisAlignment.start,
-                              children: [
-                                if (!isCurrentUser) ...[
-                                  CircleAvatar(
-                                    radius: 16,
-                                    backgroundColor: Colors.lightBlue,
-                                    backgroundImage: AssetImage(
-                                      "assets/Icon/bot.png",
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                ],
-                                Flexible(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: isCurrentUser
-                                          ? const Color(0xff2F80ED)
-                                          : Colors.grey[300],
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: const Radius.circular(16),
-                                        topRight: const Radius.circular(16),
-                                        bottomLeft: isCurrentUser
-                                            ? const Radius.circular(16)
-                                            : const Radius.circular(4),
-                                        bottomRight: isCurrentUser
-                                            ? const Radius.circular(4)
-                                            : const Radius.circular(16),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      message.text,
-                                      style: GoogleFonts.poppins(
-                                        color: isCurrentUser
-                                            ? Colors.white
-                                            : Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                if (isCurrentUser) ...[
-                                  const SizedBox(width: 6),
-                                  CircleAvatar(
-                                    radius: 16,
-                                    backgroundImage: profileImage != null
-                                        ? FileImage(profileImage!)
-                                        : const AssetImage(
-                                                "assets/default_avatar.png",
-                                              )
-                                              as ImageProvider,
-                                  ),
-                                ],
-                              ],
+                          ),
+                          inputDecoration: InputDecoration(
+                            hintText: messages.isEmpty
+                                ? "Apakah ada sesuatu yang Anda ingin saya bantu?"
+                                : "Ketik pesan...",
+                            hintStyle: GoogleFonts.poppins(
+                              fontSize: screenWidth * 0.030,
                             ),
-                          ],
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: screenWidth * 0.04,
+                              vertical: screenHeight * 0.015,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                screenWidth * 0.075,
+                              ),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          sendButtonBuilder: (onSend) => Container(
+                            margin: EdgeInsets.only(
+                              left: screenWidth * 0.02,
+                              right: screenWidth * 0.01,
+                            ),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [Color(0xff4AC2FF), Color(0xff2F80ED)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.arrow_upward,
+                                color: Colors.white,
+                              ),
+                              onPressed: onSend,
+                            ),
+                          ),
                         ),
-                      );
-                    },
-              ),
-              inputOptions: InputOptions(
-                inputDecoration: InputDecoration(
-                  hintText: "Apakah yang ingin saya bantu?",
-                  hintStyle: GoogleFonts.poppins(fontSize: 14),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide.none,
+                      ),
+                    ],
                   ),
                 ),
-                sendButtonBuilder: (onSend) => Container(
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Color(0xff4AC2FF), Color(0xff2F80ED)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white),
-                    onPressed: onSend,
-                  ),
-                ),
-              ),
+              ],
             ),
     );
   }

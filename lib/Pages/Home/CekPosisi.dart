@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/get_core.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:i_hear/Pages/Home/DetailKereta.dart';
-import 'package:i_hear/Pages/Home/PosisiKamu.dart';
+import 'package:i_hear/Pages/Detail/DetailPosisi.dart';
+import 'package:i_hear/Pages/Detail/DetailKereta.dart';
+import 'package:i_hear/Pages/Home/HomePage.dart';
+// Pastikan path dan nama file ini benar sesuai lokasi file DetailPosisiPage Anda
+import '../Detail/DetailPosisi.dart';
 
 class CekPosisi extends StatelessWidget {
   const CekPosisi({super.key});
@@ -24,7 +26,6 @@ class CekPosisi extends StatelessWidget {
           stops: [0.1, 1.0],
         ),
       ),
-
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SingleChildScrollView(
@@ -45,7 +46,7 @@ class CekPosisi extends StatelessWidget {
                         child: IconButton(
                           icon: Icon(Icons.arrow_back_ios, color: Colors.black),
                           onPressed: () {
-                            Navigator.pop(context);
+                            Get.offAll(HomePage());
                           },
                         ),
                       ),
@@ -86,7 +87,10 @@ class CekPosisi extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                 child: InkWell(
-                  onTap: () {},
+                  onTap: () {
+                    // Navigasi ke halaman detail kereta (jika diperlukan)
+                    Get.to(() => DetailPosisiKeretaPage());
+                  },
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     padding: EdgeInsets.all(screenWidth * 0.05),
@@ -101,75 +105,70 @@ class CekPosisi extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: GestureDetector(
-                      onTap: () {
-                        // Get.to(DetailPosisiKeretaPage());
-                      },
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              ImageIcon(
-                                AssetImage("assets/Icon/trainAwal.png"),
-                                color: Color(0xff2F80ED),
-                              ),
-                              SizedBox(width: screenWidth * 0.04),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Stasiun",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: screenWidth * 0.03,
-                                      color: Color(0xff878787),
-                                      fontWeight: FontWeight.w400,
-                                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            ImageIcon(
+                              AssetImage("assets/Icon/trainAwal.png"),
+                              color: Color(0xff2F80ED),
+                            ),
+                            SizedBox(width: screenWidth * 0.04),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Stasiun",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: screenWidth * 0.03,
+                                    color: Color(0xff878787),
+                                    fontWeight: FontWeight.w400,
                                   ),
-                                  Text(
-                                    "JAKARTAKOTA",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: screenWidth * 0.045,
-                                      fontWeight: FontWeight.w300,
-                                      color: Colors.black,
-                                    ),
+                                ),
+                                Text(
+                                  "JAKARTAKOTA",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: screenWidth * 0.045,
+                                    fontWeight: FontWeight.w300,
+                                    color: Colors.black,
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          Divider(height: screenHeight * 0.04),
-                          Row(
-                            children: [
-                              ImageIcon(
-                                AssetImage("assets/Icon/trainTujuan.png"),
-                                color: Color(0xff2F80ED),
-                              ),
-                              SizedBox(width: screenWidth * 0.04),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Stasiun",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: screenWidth * 0.03,
-                                      color: Color(0xff878787),
-                                      fontWeight: FontWeight.w400,
-                                    ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Divider(height: screenHeight * 0.04),
+                        Row(
+                          children: [
+                            ImageIcon(
+                              AssetImage("assets/Icon/trainTujuan.png"),
+                              color: Color(0xff2F80ED),
+                            ),
+                            SizedBox(width: screenWidth * 0.04),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Stasiun",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: screenWidth * 0.03,
+                                    color: Color(0xff878787),
+                                    fontWeight: FontWeight.w400,
                                   ),
-                                  Text(
-                                    "BOGOR",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: screenWidth * 0.045,
-                                      fontWeight: FontWeight.w300,
-                                      color: Colors.black,
-                                    ),
+                                ),
+                                Text(
+                                  "BOGOR",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: screenWidth * 0.045,
+                                    fontWeight: FontWeight.w300,
+                                    color: Colors.black,
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -179,7 +178,9 @@ class CekPosisi extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                 child: InkWell(
                   onTap: () {
-                    // Get.to(MapWithSearch());
+                    // --- PERUBAHAN DI SINI ---
+                    // Mengarahkan ke halaman peta DetailPosisiPage
+                    Get.to(() => const DetailPosisiPage());
                   },
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
